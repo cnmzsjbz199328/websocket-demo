@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>WebSocket Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h1>WebSocket Test</h1>
+<button onclick="connect()">Connect</button>
+<button onclick="sendMessage()">Send Message</button>
+<div id="messages"></div>
+
+<script>
+    var stompClient = null;
+
+    function connect() {
+        var socket = new SockJS('/gomoku-websocket');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function(frame) {
+            console.log('Connected: ' + frame);
+            document.getElementById('messages').innerHTML += '<p>Connected</p>';
+            stompClient.subscribe('/topic/gameState', function(message) {
+                showMessage(JSON.parse(message.body));
+            });
+        });
+    }
+
+    function sendMessage() {
+        var move = {
+            row: 1,
+            column: 1
+        };
+        stompClient.send("/app/move", {}, JSON.stringify(move));
+        document.getElementById('messages').innerHTML += '<p>Sent: ' + move.row + ' - ' + move.column + '</p>';
+    }
+
+    function showMessage(message) {
+        document.getElementById('messages').innerHTML += '<p>Received: ' + message.row + ' - ' + message.column + '</p>';
+    }
+</script>
+</body>
+</html>
